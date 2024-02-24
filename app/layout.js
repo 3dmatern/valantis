@@ -1,7 +1,12 @@
-import { Inter } from "next/font/google";
+import { Inter as FontSans } from "next/font/google";
+import { cn } from "@/lib/utils";
+
 import "./globals.css";
 
-const inter = Inter({ subsets: ["cyrillic", "latin"] });
+export const fontSans = FontSans({
+    subsets: ["cyrillic", "latin"],
+    variable: "--font-sans",
+});
 
 export const metadata = {
     title: "Test Work Valantis",
@@ -11,7 +16,14 @@ export const metadata = {
 export default function RootLayout({ children }) {
     return (
         <html lang="ru">
-            <body className={inter.className}>{children}</body>
+            <body
+                className={cn(
+                    "min-h-screen bg-background font-sans antialiased",
+                    fontSans.variable
+                )}
+            >
+                {children}
+            </body>
         </html>
     );
 }
