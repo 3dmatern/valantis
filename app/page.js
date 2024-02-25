@@ -2,14 +2,14 @@
 
 import { useProduct } from "@/hooks/use-product";
 
-import { Home } from "@/components/home";
+import { Product } from "@/components/product";
 
-export default function HomePage() {
+export default function Home() {
     const { products } = useProduct();
 
     return (
         <HomePageLayout>
-            <Home products={products} />
+            <Product products={products} />
         </HomePageLayout>
     );
 }

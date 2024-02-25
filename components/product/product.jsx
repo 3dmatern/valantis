@@ -1,7 +1,7 @@
-import { ProductWrapper } from "@/components/home/ui/product-wrapper";
+import { ProductWrapper } from "@/components/product/ui/product-wrapper";
 import { ProductCard } from "./ui/product-card";
 
-export function Home({ products }) {
+export function Product({ products }) {
     return (
         <ProductWrapper>
             {products?.map((product) => (
