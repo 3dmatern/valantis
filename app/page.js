@@ -1,13 +1,19 @@
 "use client";
 
-import { Home } from "@/components/home";
 import { useProduct } from "@/hooks/use-product";
 
+import { Home } from "@/components/home";
+
 export default function HomePage() {
-    const { productIDs } = useProduct();
+    const { products } = useProduct();
+
     return (
-        <main>
-            <Home />
-        </main>
+        <HomePageLayout>
+            <Home products={products} />
+        </HomePageLayout>
     );
+}
+
+function HomePageLayout({ children }) {
+    return <main className="container mx-auto">{children}</main>;
 }

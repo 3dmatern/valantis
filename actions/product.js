@@ -3,8 +3,6 @@
 import axios from "axios";
 import md5 from "md5";
 
-console.log(md5(process.env.X_AUTH_HEADER));
-
 const HEADERS = {
     headers: {
         "X-Auth": md5(process.env.X_AUTH_HEADER),
@@ -16,8 +14,8 @@ const http = axios.create({
 
 export async function getProductIDs(offset = 0, limit = 50) {
     try {
-        const data = await http.post(
-            null,
+        const { data } = await http.post(
+            "/",
             {
                 action: "get_ids",
                 params: {
@@ -27,50 +25,66 @@ export async function getProductIDs(offset = 0, limit = 50) {
             },
             HEADERS
         );
-        console.log(data);
-        return data;
+
+        return { success: data.result };
     } catch (error) {
-        console.error(error);
+        console.error("getProductIDs", error?.response);
+        return { error: error?.response?.data };
     }
 }
 
-export async function getProductByIDs({ ids }) {
+export async function getProductByIDs(ids) {
     try {
-        const data = await http.post(null, {
-            action: "get_items",
-            params: {
-                ids,
+        const { data } = await http.post(
+            "/",
+            {
+                action: "get_items",
+                params: {
+                    ids,
+                },
             },
-        });
-        console.log(data);
-        return data;
+            HEADERS
+        );
+
+        return { success: data.result };
     } catch (error) {
-        console.error(error);
+        console.error("getProductByIDs", error?.response);
+        return { error: error?.response?.data };
     }
 }
 
 export async function getProductFields(params) {
     try {
-        const data = await http.post(null, {
-            action: "get_fields",
-            params,
-        });
+        const { data } = await http.post(
+            "/",
+            {
+                action: "get_fields",
+                params,
+            },
+            HEADERS
+        );
         console.log(data);
         return data;
     } catch (error) {
-        console.error(error);
+        console.error("getProductFields", error?.response);
+        return { error: error?.response?.data };
     }
 }
 
 export async function getFilteredProductByField(params) {
     try {
-        const data = await http.post(null, {
-            action: "filter",
-            params,
-        });
+        const { data } = await http.post(
+            "/",
+            {
+                action: "filter",
+                params,
+            },
+            HEADERS
+        );
         console.log(data);
         return data;
     } catch (error) {
-        console.error(error);
+        console.error("getFilteredProductByField", error?.response);
+        return { error: error?.response?.data };
     }
 }
