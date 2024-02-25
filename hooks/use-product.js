@@ -3,46 +3,44 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { getProductByIDs, getProductIDs } from "@/actions/product";
+import { getProductByIDs } from "@/actions/product";
 
-export function useProduct() {
+export function useProduct(productIDsCrop) {
     const [products, setProducts] = useState([]);
 
     useEffect(() => {
-        const fetchData = async () => {
-            const productIDsData = await getProductIDs();
+        if (productIDsCrop?.length > 0) {
+            console.log("render useProduct");
+            const fetchData = async () => {
+                const productsData = await getProductByIDs(productIDsCrop);
 
-            if (productIDsData.error) {
-                console.error(productIDsData.error);
-                toast.error(productIDsData.error);
-                return;
-            }
+                if (productsData?.error) {
+                    console.error(productsData.error);
+                    toast.error(productsData.error);
+                    return;
+                }
 
-            const productsData = await getProductByIDs(productIDsData.success);
+                setProducts((prev) => {
+                    const prevProucts = prev?.slice();
+                    const newProducts = [
+                        ...prevProucts,
+                        ...productsData.success,
+                    ];
+                    const clearingDuplicates = newProducts.reduce(
+                        (acc, product) => {
+                            return acc.some((ac) => ac.id === product.id)
+                                ? acc
+                                : [...acc, product];
+                        },
+                        []
+                    );
+                    return clearingDuplicates;
+                });
+            };
 
-            if (productsData.error) {
-                console.error(productIDsData.error);
-                toast.error(productsData.error);
-                return;
-            }
-
-            setProducts((prev) => {
-                const prevProucts = prev?.slice();
-                const newProducts = [...prevProucts, ...productsData.success];
-                const clearingDuplicates = newProducts.reduce(
-                    (acc, product) => {
-                        return acc.some((ac) => ac.id === product.id)
-                            ? acc
-                            : [...acc, product];
-                    },
-                    []
-                );
-                return clearingDuplicates;
-            });
-        };
-
-        fetchData();
-    }, []);
+            fetchData();
+        }
+    }, [productIDsCrop]);
 
     return {
         products,
