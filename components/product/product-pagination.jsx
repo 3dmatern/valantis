@@ -8,17 +8,20 @@ import {
     PaginationPrevious,
 } from "@/components/ui/pagination";
 import { cn } from "@/lib/utils";
+import { pagesArray } from "@/utils/paginate";
 
 export function ProductPagination({
     className,
     currentPage,
-    pages,
+    pageCount,
     onChangePage,
     onClickPrevPage,
     onClickNextPage,
 }) {
+    const pages = pagesArray(pageCount);
+
     return (
-        pages?.length > 0 && (
+        pages?.length > 1 && (
             <Pagination className={cn("mt-4 mb-4", className)}>
                 <PaginationContent>
                     <PaginationItem>
@@ -41,7 +44,7 @@ export function ProductPagination({
                     <PaginationItem>
                         <PaginationEllipsis />
                     </PaginationItem>
-                    {pages.splice(pages.length - 1).map((p) => (
+                    {pages.splice(pages.length - 1, 1).map((p) => (
                         <PaginationItem key={p}>
                             <PaginationLink
                                 href="#"

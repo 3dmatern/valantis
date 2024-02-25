@@ -9,37 +9,49 @@ export function useProductIDs() {
     const [productIDs, setProductIDs] = useState([]);
 
     useEffect(() => {
-        const fetchData = async () => {
-            const productIDsData = await getProductIDs();
+        const fetchDataAndSet = async () => {
+            const allData = await fetchData({ offset: 0 });
 
-            if (productIDsData?.error) {
-                console.error(productIDsData.error);
-                toast.error(productIDsData.error);
-                return;
+            if (allData?.length) {
+                setProductIDs((prev) => {
+                    const prevProuctIDs = prev?.slice();
+                    const newProductIDs = [...prevProuctIDs, ...allData];
+                    const clearingDuplicates = newProductIDs.reduce(
+                        (acc, productId) => {
+                            return acc.some((ac) => ac === productId)
+                                ? acc
+                                : [...acc, productId];
+                        },
+                        []
+                    );
+                    return clearingDuplicates;
+                });
             }
-
-            setProductIDs((prev) => {
-                const prevProuctIDs = prev?.slice();
-                const newProductIDs = [
-                    ...prevProuctIDs,
-                    ...productIDsData.success,
-                ];
-                const clearingDuplicates = newProductIDs.reduce(
-                    (acc, productId) => {
-                        return acc.some((ac) => ac === productId)
-                            ? acc
-                            : [...acc, productId];
-                    },
-                    []
-                );
-                return clearingDuplicates;
-            });
         };
 
-        fetchData();
+        fetchDataAndSet();
     }, []);
 
     return {
         productIDs,
     };
 }
+
+const fetchData = async ({ offset, limit }, dataSoFar = []) => {
+    const productIDsData = await getProductIDs({ offset, limit });
+
+    if (productIDsData?.error) {
+        console.error(productIDsData.error);
+        toast.error(productIDsData.error);
+        return;
+    }
+
+    const updatedData = [...dataSoFar, ...productIDsData.success];
+    const productIDsLength = productIDsData.success.length;
+
+    if (productIDsLength === 100) {
+        return fetchData({ offset: offset + productIDsLength }, updatedData);
+    }
+
+    return updatedData;
+};

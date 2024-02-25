@@ -2,30 +2,30 @@
 
 import { useEffect, useState } from "react";
 
-import { pagesArray, paginate } from "@/utils/paginate";
+import { itemsCrop } from "@/utils/paginate";
 
 export function usePaginate(items) {
     const pageSize = 50;
     const [
-        { currentPage, itemsCount, pageCount, pages, itemsCrop },
+        { currentPage, itemsCount, pageCount, currentItems },
         setPaginateData,
     ] = useState({
         currentPage: 1,
         itemsCount: 0,
         pageCount: 0,
-        pages: [],
-        itemsCrop: [],
+        currentItems: [],
     });
 
     const handkeChangePage = (selectPage) => {
         setPaginateData((prev) => ({
             ...prev,
             currentPage: selectPage,
+            currentItems: itemsCrop(items, selectPage, pageSize),
         }));
     };
 
     const handleClickPrevPage = () => {
-        if (currentPage === 1 || pageCount(itemsCount, pageSize) === 0) {
+        if (currentPage === 1 || pageCount === 0) {
             return;
         }
 
@@ -34,14 +34,12 @@ export function usePaginate(items) {
         setPaginateData((prev) => ({
             ...prev,
             currentPage: selectPage,
+            currentItems: itemsCrop(items, selectPage, pageSize),
         }));
     };
 
     const handleClickNextPage = () => {
-        if (
-            currentPage === pageCount(itemsCount, pageSize) ||
-            pageCount(itemsCount, pageSize) === 0
-        ) {
+        if (currentPage === pageCount || pageCount === 0) {
             return;
         }
 
@@ -49,19 +47,19 @@ export function usePaginate(items) {
         setPaginateData((prev) => ({
             ...prev,
             currentPage: selectPage,
+            currentItems: itemsCrop(items, selectPage, pageSize),
         }));
     };
 
     useEffect(() => {
         if (items?.length > 0) {
             const pageCount = Math.ceil(items.length / pageSize);
-            const pages = pagesArray(pageCount);
+
             setPaginateData((prev) => ({
                 ...prev,
                 itemsCount: items.length,
                 pageCount,
-                pages: pages,
-                itemsCrop: paginate(items, prev.currentPage, pageSize),
+                currentItems: itemsCrop(items, prev.currentPage, pageSize),
             }));
         }
     }, [items]);
@@ -70,9 +68,8 @@ export function usePaginate(items) {
         pageSize,
         itemsCount,
         currentPage,
-        itemsCrop,
+        currentItems,
         pageCount,
-        pages,
         onChangePage: handkeChangePage,
         onClickPrevPage: handleClickPrevPage,
         onClickNextPage: handleClickNextPage,

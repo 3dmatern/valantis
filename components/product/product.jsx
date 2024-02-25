@@ -1,10 +1,14 @@
+"use client";
+
+import React, { memo } from "react";
+
 import { ProductWrapper } from "@/components/product/ui/product-wrapper";
 import { ProductCard } from "./ui/product-card";
 import { ProductPagination } from "./product-pagination";
 
-export function Product({
+export const Product = memo(function Product({
     currentPage,
-    pages,
+    pageCount,
     onChangePage,
     onClickPrevPage,
     onClickNextPage,
@@ -26,11 +30,11 @@ export function Product({
 
             <ProductPagination
                 currentPage={currentPage}
-                pages={pages}
+                pageCount={pageCount}
                 onChangePage={onChangePage}
                 onClickPrevPage={onClickPrevPage}
                 onClickNextPage={onClickNextPage}
             />
         </>
     );
-}
+});

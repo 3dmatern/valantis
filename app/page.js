@@ -10,23 +10,23 @@ export default function Home() {
     const { productIDs } = useProductIDs();
     const {
         currentPage,
-        itemsCrop: productIDsCrop,
-        pages,
+        currentItems: productIDsCrop,
+        pageCount,
         onChangePage,
         onClickPrevPage,
         onClickNextPage,
     } = usePaginate(productIDs);
-    // const { products } = useProduct(productIDsCrop);
+    const { products } = useProduct(productIDsCrop);
 
     return (
         <HomePageLayout>
             <Product
                 currentPage={currentPage}
-                pages={pages}
+                pageCount={pageCount}
                 onChangePage={onChangePage}
                 onClickPrevPage={onClickPrevPage}
                 onClickNextPage={onClickNextPage}
-                // products={products}
+                products={products}
             />
         </HomePageLayout>
     );

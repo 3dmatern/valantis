@@ -1,27 +1,24 @@
-"use client";
+"use server";
 
 import axios from "axios";
 import md5 from "md5";
 
 const HEADERS = {
     headers: {
-        "X-Auth": md5("Valantis_20240225"),
+        "X-Auth": md5(process.env.X_AUTH_HEADER),
     },
 };
 const http = axios.create({
-    baseURL: "https://api.valantis.store:41000",
+    baseURL: process.env.API_ENDPOINT,
 });
 
-export async function getProductIDs(offset = 0, limit = 50) {
+export async function getProductIDs(params = null) {
     try {
         const { data } = await http.post(
             "/",
             {
                 action: "get_ids",
-                params: {
-                    offset,
-                    limit,
-                },
+                params,
             },
             HEADERS
         );
