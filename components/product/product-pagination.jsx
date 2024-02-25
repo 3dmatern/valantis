@@ -20,22 +20,49 @@ export function ProductPagination({
 }) {
     const pages = pagesArray(pageCount);
 
-    return (
-        pages?.length > 1 && (
-            <Pagination className={cn("mt-4 mb-4", className)}>
-                <PaginationContent>
+    const getThirdPageNumber = () => {
+        if (currentPage >= 3 && currentPage <= pages.length - 2) {
+            return (
+                <>
+                    {pages.splice(0, 1).map((p) => (
+                        <PaginationItem key={p}>
+                            <PaginationLink
+                                href="#"
+                                onClick={() => onChangePage(p)}
+                            >
+                                {p}
+                            </PaginationLink>
+                        </PaginationItem>
+                    ))}
                     <PaginationItem>
-                        <PaginationPrevious
-                            href="#"
-                            onClick={onClickPrevPage}
-                        />
+                        <PaginationEllipsis />
                     </PaginationItem>
-                    {pages.splice(currentPage - 1, 3).map((p) => (
+                    {pages.splice(currentPage - 3, 1).map((p) => (
+                        <PaginationItem key={p}>
+                            <PaginationLink
+                                href="#"
+                                onClick={() => onChangePage(p)}
+                            >
+                                {p}
+                            </PaginationLink>
+                        </PaginationItem>
+                    ))}
+                    {pages.splice(currentPage - 3, 1).map((p) => (
                         <PaginationItem key={p}>
                             <PaginationLink
                                 href="#"
                                 onClick={() => onChangePage(p)}
                                 isActive={currentPage === p}
+                            >
+                                {p}
+                            </PaginationLink>
+                        </PaginationItem>
+                    ))}
+                    {pages.splice(currentPage - 3, 1).map((p) => (
+                        <PaginationItem key={p}>
+                            <PaginationLink
+                                href="#"
+                                onClick={() => onChangePage(p)}
                             >
                                 {p}
                             </PaginationLink>
@@ -49,12 +76,89 @@ export function ProductPagination({
                             <PaginationLink
                                 href="#"
                                 onClick={() => onChangePage(p)}
+                            >
+                                {p}
+                            </PaginationLink>
+                        </PaginationItem>
+                    ))}
+                </>
+            );
+        }
+
+        if (currentPage > pages.length - 2) {
+            return (
+                <>
+                    {pages.splice(0, 1).map((p) => (
+                        <PaginationItem key={p}>
+                            <PaginationLink
+                                href="#"
+                                onClick={() => onChangePage(p)}
                                 isActive={currentPage === p}
                             >
                                 {p}
                             </PaginationLink>
                         </PaginationItem>
                     ))}
+                    <PaginationItem>
+                        <PaginationEllipsis />
+                    </PaginationItem>
+                    {pages.splice(pages.length - 3).map((p) => (
+                        <PaginationItem key={p}>
+                            <PaginationLink
+                                href="#"
+                                onClick={() => onChangePage(p)}
+                                isActive={currentPage === p}
+                            >
+                                {p}
+                            </PaginationLink>
+                        </PaginationItem>
+                    ))}
+                </>
+            );
+        }
+
+        return (
+            <>
+                {pages.splice(0, 3).map((p) => (
+                    <PaginationItem key={p}>
+                        <PaginationLink
+                            href="#"
+                            onClick={() => onChangePage(p)}
+                            isActive={currentPage === p}
+                        >
+                            {p}
+                        </PaginationLink>
+                    </PaginationItem>
+                ))}
+                <PaginationItem>
+                    <PaginationEllipsis />
+                </PaginationItem>
+                {pages.splice(pages.length - 1, 1).map((p) => (
+                    <PaginationItem key={p}>
+                        <PaginationLink
+                            href="#"
+                            onClick={() => onChangePage(p)}
+                            isActive={currentPage === p}
+                        >
+                            {p}
+                        </PaginationLink>
+                    </PaginationItem>
+                ))}
+            </>
+        );
+    };
+
+    return (
+        pages?.length > 1 && (
+            <Pagination className={cn("mt-4 mb-4", className)}>
+                <PaginationContent>
+                    <PaginationItem>
+                        <PaginationPrevious
+                            href="#"
+                            onClick={onClickPrevPage}
+                        />
+                    </PaginationItem>
+                    {getThirdPageNumber()}
                     <PaginationItem>
                         <PaginationNext href="#" onClick={onClickNextPage} />
                     </PaginationItem>

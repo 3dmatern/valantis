@@ -9,7 +9,6 @@ export function useProduct(productIDsCrop) {
     const [products, setProducts] = useState([]);
 
     useEffect(() => {
-        console.log("render useProduct");
         const fetchData = async () => {
             const productsData = await getProductByIDs(productIDsCrop);
 
