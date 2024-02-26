@@ -10,13 +10,11 @@ export function useProductIDs() {
 
     useEffect(() => {
         const fetchDataAndSet = async () => {
-            const allData = await fetchData({ offset: 0 });
+            const allProductIDsData = await fetchData({ offset: 0 });
 
-            if (allData?.length) {
+            if (allProductIDsData?.length) {
                 setProductIDs((prev) => {
-                    const prevProuctIDs = prev?.slice();
-                    const newProductIDs = [...prevProuctIDs, ...allData];
-                    const clearingDuplicates = newProductIDs.reduce(
+                    const clearingDuplicates = allProductIDsData.reduce(
                         (acc, productId) => {
                             return acc.some((ac) => ac === productId)
                                 ? acc
@@ -39,6 +37,7 @@ export function useProductIDs() {
 
 const fetchData = async ({ offset, limit }, dataSoFar = []) => {
     const productIDsData = await getProductIDs({ offset, limit });
+    let updatedProductIDs = [...dataSoFar];
 
     if (productIDsData?.error) {
         console.error(productIDsData.error);
@@ -46,12 +45,17 @@ const fetchData = async ({ offset, limit }, dataSoFar = []) => {
         return;
     }
 
-    const updatedData = [...dataSoFar, ...productIDsData.success];
-    const productIDsLength = productIDsData.success.length;
+    if (productIDsData?.success) {
+        updatedProductIDs = [...updatedProductIDs, ...productIDsData.success];
+        const productIDsLength = productIDsData.success.length;
 
-    if (productIDsLength === 100) {
-        return fetchData({ offset: offset + productIDsLength }, updatedData);
+        if (productIDsLength === 100) {
+            return fetchData(
+                { offset: offset + productIDsLength },
+                updatedProductIDs
+            );
+        }
     }
 
-    return updatedData;
+    return updatedProductIDs;
 };

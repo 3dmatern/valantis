@@ -5,6 +5,7 @@ import { usePaginate } from "@/hooks/use-paginate";
 import { useProduct } from "@/hooks/use-product";
 
 import { Product } from "@/components/product";
+import { ProductFilterForm } from "@/components/product/product-filter-form";
 
 export default function Home() {
     const { productIDs } = useProductIDs();
@@ -16,11 +17,13 @@ export default function Home() {
         onClickPrevPage,
         onClickNextPage,
     } = usePaginate(productIDs);
-    const { products } = useProduct(productIDsCrop);
+    const { products, productBrands } = useProduct(productIDsCrop);
 
     return (
         <HomePageLayout>
+            <ProductFilterForm brands={productBrands} />
             <Product
+                className="col-span-4"
                 currentPage={currentPage}
                 pageCount={pageCount}
                 onChangePage={onChangePage}
@@ -33,5 +36,9 @@ export default function Home() {
 }
 
 function HomePageLayout({ children }) {
-    return <main className="container mx-auto">{children}</main>;
+    return (
+        <main className="container mx-auto grid grid-cols-5 gap-5 items-start">
+            {children}
+        </main>
+    );
 }

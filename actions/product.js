@@ -60,8 +60,8 @@ export async function getProductFields(params) {
             },
             HEADERS
         );
-        console.log(data);
-        return data;
+
+        return { success: data.result };
     } catch (error) {
         console.error("getProductFields", error?.response);
         return { error: error?.response?.data };
@@ -79,7 +79,8 @@ export async function getFilteredProductByField(params) {
             HEADERS
         );
         console.log(data);
-        return data;
+
+        return { success: data.result };
     } catch (error) {
         console.error("getFilteredProductByField", error?.response);
         return { error: error?.response?.data };

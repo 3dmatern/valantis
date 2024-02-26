@@ -5,8 +5,10 @@ import React, { memo } from "react";
 import { ProductWrapper } from "@/components/product/ui/product-wrapper";
 import { ProductCard } from "./ui/product-card";
 import { ProductPagination } from "./product-pagination";
+import { cn } from "@/lib/utils";
 
 export const Product = memo(function Product({
+    className,
     currentPage,
     pageCount,
     onChangePage,
@@ -15,7 +17,7 @@ export const Product = memo(function Product({
     products,
 }) {
     return (
-        <>
+        <ProductLayout className={className}>
             <ProductWrapper>
                 {products?.map((product) => (
                     <ProductCard
@@ -35,6 +37,10 @@ export const Product = memo(function Product({
                 onClickPrevPage={onClickPrevPage}
                 onClickNextPage={onClickNextPage}
             />
-        </>
+        </ProductLayout>
     );
 });
+
+function ProductLayout({ className, children }) {
+    return <div className={cn("", className)}>{children}</div>;
+}
