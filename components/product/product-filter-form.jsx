@@ -36,6 +36,10 @@ export function ProductFilterForm({ className, brands }) {
         });
     };
 
+    const handleClickReset = () => {
+        form.reset();
+    };
+
     const form = useForm({
         resolver: zodResolver(ProductFilterSchema),
         defaultValues: {
@@ -143,7 +147,12 @@ export function ProductFilterForm({ className, brands }) {
                 <Button type="submit" size="sm" className="mr-2.5">
                     Применить
                 </Button>
-                <Button type="reset" variant="outline" size="sm">
+                <Button
+                    type="reset"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleClickReset}
+                >
                     Сбросить
                 </Button>
             </form>
