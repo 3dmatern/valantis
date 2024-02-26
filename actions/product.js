@@ -78,7 +78,6 @@ export async function getFilteredProductByField(params) {
             },
             HEADERS
         );
-        console.log(data);
 
         return { success: data.result };
     } catch (error) {

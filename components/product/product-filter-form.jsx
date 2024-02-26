@@ -13,13 +13,27 @@ import {
     FormField,
     FormItem,
     FormLabel,
+    FormMessage,
 } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-export function ProductFilterForm({ className, brands }) {
+export function ProductFilterForm({
+    className,
+    brands,
+    onClickApplyFilter,
+    onClickResetFilter,
+}) {
     const [brandsSplice, setBrandsSplice] = useState([]);
+    const form = useForm({
+        resolver: zodResolver(ProductFilterSchema),
+        defaultValues: {
+            product: "",
+            brand: [],
+            price: "",
+        },
+    });
 
     useEffect(() => {
         if (brands.length) {
@@ -38,18 +52,11 @@ export function ProductFilterForm({ className, brands }) {
 
     const handleClickReset = () => {
         form.reset();
+        onClickResetFilter();
     };
 
-    const form = useForm({
-        resolver: zodResolver(ProductFilterSchema),
-        defaultValues: {
-            brands: [],
-            price: 0,
-        },
-    });
-
-    const onSubmit = async (values) => {
-        console.log(values);
+    const onSubmit = (values) => {
+        onClickApplyFilter(values);
     };
 
     return (
@@ -60,7 +67,27 @@ export function ProductFilterForm({ className, brands }) {
             >
                 <FormField
                     control={form.control}
-                    name="brands"
+                    name="product"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel className="block mb-4 text-base">
+                                Название
+                            </FormLabel>
+                            <FormControl>
+                                <Input
+                                    type="text"
+                                    placeholder="Золотое кольцо"
+                                    className="h-8 text-xs"
+                                    {...field}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="brand"
                     render={() => (
                         <FormItem>
                             <FormLabel className="block mb-4 text-base">
@@ -70,7 +97,7 @@ export function ProductFilterForm({ className, brands }) {
                                 <FormField
                                     key={brand.id}
                                     control={form.control}
-                                    name="brands"
+                                    name="brand"
                                     render={({ field }) => {
                                         return (
                                             <FormItem className="flex flex-row items-start space-x-2 space-y-0">
@@ -120,6 +147,7 @@ export function ProductFilterForm({ className, brands }) {
                                     Показать ещё...
                                 </Button>
                             )}
+                            <FormMessage />
                         </FormItem>
                     )}
                 />
@@ -134,23 +162,30 @@ export function ProductFilterForm({ className, brands }) {
                             <FormControl>
                                 <Input
                                     type="number"
-                                    step="0.1"
+                                    step="1"
                                     min="0"
-                                    placeholder="100.0"
+                                    placeholder="100"
                                     className="h-8 text-xs"
                                     {...field}
                                 />
                             </FormControl>
+                            <FormMessage />
                         </FormItem>
                     )}
                 />
-                <Button type="submit" size="sm" className="mr-2.5">
+                <Button
+                    type="submit"
+                    size="sm"
+                    disabled={!form.formState.isValid}
+                    className="mr-2.5"
+                >
                     Применить
                 </Button>
                 <Button
                     type="reset"
                     variant="outline"
                     size="sm"
+                    disabled={!form.formState.isValid}
                     onClick={handleClickReset}
                 >
                     Сбросить
@@ -158,8 +193,4 @@ export function ProductFilterForm({ className, brands }) {
             </form>
         </Form>
     );
-}
-
-function ProductFilterLayout({ className, children }) {
-    return <div className={cn("", className)}>{children}</div>;
 }

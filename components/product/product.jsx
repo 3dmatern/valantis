@@ -11,10 +11,10 @@ export const Product = memo(function Product({
     className,
     currentPage,
     pageCount,
+    products,
     onChangePage,
     onClickPrevPage,
     onClickNextPage,
-    products,
 }) {
     return (
         <ProductLayout className={className}>
