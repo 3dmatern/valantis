@@ -40,7 +40,7 @@ export default function Home() {
 
 function HomePageLayout({ children }) {
     return (
-        <main className="container mx-auto relative grid grid-cols-5 gap-5 items-start">
+        <main className="container mx-auto relative grid grid-cols-5 gap-5 items-start pt-5">
             {children}
         </main>
     );

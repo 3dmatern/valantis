@@ -2,10 +2,11 @@
 
 import React, { memo } from "react";
 
+import { cn } from "@/lib/utils";
+
 import { ProductWrapper } from "@/components/product/ui/product-wrapper";
 import { ProductCard } from "./ui/product-card";
 import { ProductPagination } from "./product-pagination";
-import { cn } from "@/lib/utils";
 
 export const Product = memo(function Product({
     className,
@@ -30,13 +31,15 @@ export const Product = memo(function Product({
                 ))}
             </ProductWrapper>
 
-            <ProductPagination
-                currentPage={currentPage}
-                pageCount={pageCount}
-                onChangePage={onChangePage}
-                onClickPrevPage={onClickPrevPage}
-                onClickNextPage={onClickNextPage}
-            />
+            {products?.length > 0 && (
+                <ProductPagination
+                    currentPage={currentPage}
+                    pageCount={pageCount}
+                    onChangePage={onChangePage}
+                    onClickPrevPage={onClickPrevPage}
+                    onClickNextPage={onClickNextPage}
+                />
+            )}
         </ProductLayout>
     );
 });
