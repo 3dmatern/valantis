@@ -17,19 +17,25 @@ export const Product = memo(function Product({
     onClickPrevPage,
     onClickNextPage,
 }) {
+    function getContent() {
+        if (products && products.length > 0) {
+            return products.map((product) => (
+                <ProductCard
+                    key={product.id}
+                    productId={product.id}
+                    brand={product.brand}
+                    name={product.product}
+                    price={product.price}
+                />
+            ));
+        }
+
+        return <p className="col-span-4 text-center">Товаров не найдено...</p>;
+    }
+
     return (
         <ProductLayout className={className}>
-            <ProductWrapper>
-                {products?.map((product) => (
-                    <ProductCard
-                        key={product.id}
-                        productId={product.id}
-                        brand={product.brand}
-                        name={product.product}
-                        price={product.price}
-                    />
-                ))}
-            </ProductWrapper>
+            <ProductWrapper>{getContent()}</ProductWrapper>
 
             {products?.length > 0 && (
                 <ProductPagination

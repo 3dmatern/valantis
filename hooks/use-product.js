@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import {
@@ -22,6 +22,43 @@ export function useProduct() {
     const [productBrands, setProductBrands] = useState([]);
     const [products, setProducts] = useState([]);
 
+    const changePaginateData = useCallback(function (productIDs) {
+        const pageCount = Math.ceil(productIDs.length / PAGE_SIZE);
+        let productIDsCrop = [];
+
+        setPaginateData((prev) => {
+            productIDsCrop = itemsCrop(productIDs, prev.currentPage, PAGE_SIZE);
+
+            return {
+                ...prev,
+                itemsCount: productIDs.length,
+                pageCount,
+            };
+        });
+
+        return productIDsCrop;
+    }, []);
+
+    const fetchDataProductByIDs = useCallback(async (productIDs) => {
+        const productsData = await getProductByIDs(productIDs);
+
+        if (productsData?.error) {
+            console.error(productsData.error);
+            toast.error(productsData.error);
+            return;
+        }
+
+        if (productsData?.success) {
+            const productNotDuplicate = clearingDuplicatesProduct(
+                productsData.success
+            );
+            const productsCrop = productNotDuplicate.filter((product) =>
+                productIDs.includes(product.id)
+            );
+            return productsCrop;
+        }
+    }, []);
+
     useEffect(() => {
         const fetchData = async () => {
             const allProductIDsData = await fetchDataProductIDs({ offset: 0 });
@@ -37,7 +74,7 @@ export function useProduct() {
         };
 
         fetchData();
-    }, []);
+    }, [changePaginateData]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -51,13 +88,15 @@ export function useProduct() {
 
             if (brandsData?.success) {
                 setProductBrands((prev) => {
-                    const clearingDuplicates = clearingDuplicatesIDs(
-                        brandsData.success
+                    const brandsNotNull = brandsData?.success.filter(
+                        (brand) => brand !== null
                     );
+                    const clearingDuplicates =
+                        clearingDuplicatesIDs(brandsNotNull);
 
-                    return clearingDuplicates
-                        .filter((brand) => brand)
-                        .map((b) => b && { id: b, label: b });
+                    return clearingDuplicates.map(
+                        (b) => b && { id: b, label: b }
+                    );
                 });
             }
         };
@@ -69,45 +108,13 @@ export function useProduct() {
         const fetchData = async () => {
             const productByIDs = await fetchDataProductByIDs(productIDsCrop);
 
-            setProducts((prev) => productByIDs);
+            if (productByIDs) {
+                setProducts((prev) => productByIDs);
+            }
         };
 
         fetchData();
-    }, [productIDsCrop]);
-
-    function changePaginateData(productIDs) {
-        const pageCount = Math.ceil(productIDs.length / PAGE_SIZE);
-        let productIDsCrop = [];
-
-        setPaginateData((prev) => {
-            productIDsCrop = itemsCrop(productIDs, prev.currentPage, PAGE_SIZE);
-
-            return {
-                ...prev,
-                itemsCount: productIDs.length,
-                pageCount,
-            };
-        });
-
-        return productIDsCrop;
-    }
-
-    async function fetchDataProductByIDs(productIDs) {
-        const productsData = await getProductByIDs(productIDs);
-
-        if (productsData?.error) {
-            console.error(productsData.error);
-            toast.error(productsData.error);
-            return;
-        }
-
-        if (productsData?.success) {
-            const clearingDuplicates = clearingDuplicatesIDs(
-                productsData.success
-            );
-            return clearingDuplicates;
-        }
-    }
+    }, [fetchDataProductByIDs, productIDsCrop]);
 
     function handleChangePage(selectPage) {
         setPaginateData((prev) => ({
@@ -155,122 +162,128 @@ export function useProduct() {
         const isProduct = values["product"] && values["product"] !== "";
         const isBrand = values["brand"] && values["brand"].length;
         const isPrice = values["price"] && +values["price"];
+        let newProductByIDs = [];
+        let newProductIDsCrop = [];
 
         if (isProduct && isBrand && isPrice) {
             console.log("isProduct isBrand isPrice");
-            const newIDsProduct = await fetchDataFilteredProductIDs({
+            const newProductIDs = await fetchDataFilteredProductIDs({
                 product: values["product"],
             });
+            console.log(newProductIDs);
 
-            if (newIDsProduct) {
-                const clearingDuplicates = clearingDuplicatesIDs(newIDsProduct);
-                const productByIDs = await fetchDataProductByIDs(
-                    clearingDuplicates
-                );
-                const filteredProducts = productByIDs.filter(
+            if (newProductIDs) {
+                const newProducts = await fetchDataProductByIDs(newProductIDs);
+                const newProductsNotDuplicate =
+                    clearingDuplicatesProduct(newProducts);
+                newProductByIDs = newProductsNotDuplicate.filter(
                     (product) =>
-                        values["brand"].includes(product?.brand) &&
+                        product.brand &&
+                        values["brand"].includes(product.brand) &&
                         product.price === +values["price"]
                 );
-                const filteredProductIDs = filteredProducts.map(
+                const filteredNewProductIDs = newProductByIDs.map(
                     (product) => product.id
                 );
-                const productIDsCrop = changePaginateData(filteredProductIDs);
-
-                setProducts((prev) =>
-                    filteredProducts.filter((product) =>
-                        productIDsCrop.includes(product.id)
-                    )
-                );
+                newProductIDsCrop = changePaginateData(filteredNewProductIDs);
             }
-            return;
         }
 
         if (isProduct && !isBrand && isPrice) {
             console.log("isProduct !isBrand isPrice");
-            const newIDsProduct = await fetchDataFilteredProductIDs({
+            const newProductIDs = await fetchDataFilteredProductIDs({
                 product: values["product"],
             });
 
-            if (newIDsProduct) {
-                const clearingDuplicates = clearingDuplicatesIDs(newIDsProduct);
-                const productByIDs = await fetchDataProductByIDs(
-                    clearingDuplicates
-                );
-                const filteredProducts = productByIDs.filter(
+            if (newProductIDs) {
+                const newProducts = await fetchDataProductByIDs(newProductIDs);
+                const newProductsNotDuplicate =
+                    clearingDuplicatesProduct(newProducts);
+                newProductByIDs = newProductsNotDuplicate.filter(
                     (product) => product.price === +values["price"]
                 );
-                const filteredProductIDs = filteredProducts.map(
+                const filteredNewProductIDs = newProductByIDs.map(
                     (product) => product.id
                 );
-                const productIDsCrop = changePaginateData(filteredProductIDs);
-
-                setProducts((prev) =>
-                    filteredProducts.filter((product) =>
-                        productIDsCrop.includes(product.id)
-                    )
-                );
+                newProductIDsCrop = changePaginateData(filteredNewProductIDs);
             }
-            return;
         }
 
         if (isProduct && isBrand && !isPrice) {
             console.log("isProduct isBrand !isPrice");
-            const newIDsProduct = await fetchDataFilteredProductIDs({
+            const newProductIDs = await fetchDataFilteredProductIDs({
                 product: values["product"],
             });
 
-            if (newIDsProduct) {
-                const clearingDuplicates = clearingDuplicatesIDs(newIDsProduct);
-                const productByIDs = await fetchDataProductByIDs(
-                    clearingDuplicates
+            if (newProductIDs) {
+                const newProducts = await fetchDataProductByIDs(newProductIDs);
+                const newProductsNotDuplicate =
+                    clearingDuplicatesProduct(newProducts);
+                newProductByIDs = newProductsNotDuplicate.filter(
+                    (product) =>
+                        product.brand && values["brand"].includes(product.brand)
                 );
-                const filteredProducts = productByIDs.filter((product) =>
-                    values["brand"].includes(product?.brand)
-                );
-                const filteredProductIDs = filteredProducts.map(
+                const filteredNewProductIDs = newProductByIDs.map(
                     (product) => product.id
                 );
-                const productIDsCrop = changePaginateData(filteredProductIDs);
-
-                setProducts((prev) =>
-                    filteredProducts.filter((product) =>
-                        productIDsCrop.includes(product.id)
-                    )
-                );
+                newProductIDsCrop = changePaginateData(filteredNewProductIDs);
             }
-            return;
+        }
+
+        if (!isProduct && isBrand && isPrice) {
+            console.log("!isProduct isBrand isPrice");
+            const newProductIDsBrand = await fetchDataFilteredProductIDs({
+                brand: values["brand"],
+            });
+            const newProductIDsPrice = await fetchDataFilteredProductIDs({
+                price: values["price"],
+            });
+
+            if (newProductIDsBrand && newProductIDsPrice) {
+                const newProducts = await fetchDataProductByIDs([
+                    ...newProductIDsBrand,
+                    ...newProductIDsPrice,
+                ]);
+                const newProductsNotDuplicate =
+                    clearingDuplicatesProduct(newProducts);
+                newProductByIDs = newProductsNotDuplicate.filter(
+                    (product) =>
+                        product.brand &&
+                        values["brand"].includes(product.brand) &&
+                        product.price === +values["price"]
+                );
+                const filteredNewProductIDs = newProductByIDs.map(
+                    (product) => product.id
+                );
+                newProductIDsCrop = changePaginateData(filteredNewProductIDs);
+            }
         }
 
         if (isProduct && !isBrand && !isPrice) {
             console.log("product");
-            const newIDsProduct = await fetchDataFilteredProductIDs({
+            const newProductIDs = await fetchDataFilteredProductIDs({
                 product: values["product"],
             });
 
-            if (newIDsProduct) {
-                const clearingDuplicates = clearingDuplicatesIDs(newIDsProduct);
-                const productByIDs = await fetchDataProductByIDs(
-                    clearingDuplicates
+            if (newProductIDs) {
+                const newProductIDsNotDuplicate =
+                    clearingDuplicatesIDs(newProductIDs);
+                newProductByIDs = await fetchDataProductByIDs(
+                    newProductIDsNotDuplicate
                 );
-                const productIDsCrop = changePaginateData(clearingDuplicates);
-
-                setProducts((prev) =>
-                    productByIDs.filter((product) =>
-                        productIDsCrop.includes(product.id)
-                    )
+                newProductIDsCrop = changePaginateData(
+                    newProductIDsNotDuplicate
                 );
             }
-            return;
         }
 
         if (!isProduct && isBrand && !isPrice) {
             console.log("brand");
             let ids = [];
 
-            for (let i = 0; i < values[key].length; i++) {
+            for (let i = 0; i < values["brand"].length; i++) {
                 const newIDs = await fetchDataFilteredProductIDs({
-                    [key]: values[key][i],
+                    brand: values["brand"][i],
                 });
 
                 if (newIDs) {
@@ -279,42 +292,39 @@ export function useProduct() {
             }
 
             if (ids.length > 0) {
-                const clearingDuplicates = clearingDuplicatesIDs(newIDsProduct);
-                const productByIDs = await fetchDataProductByIDs(
-                    clearingDuplicates
+                const newProductIDsNotDuplicate = clearingDuplicatesIDs(ids);
+                newProductByIDs = await fetchDataProductByIDs(
+                    newProductIDsNotDuplicate
                 );
-                const productIDsCrop = changePaginateData(clearingDuplicates);
-
-                setProducts((prev) =>
-                    productByIDs.filter((product) =>
-                        productIDsCrop.includes(product.id)
-                    )
+                newProductIDsCrop = changePaginateData(
+                    newProductIDsNotDuplicate
                 );
             }
-            return;
         }
 
         if (!isProduct && !isBrand && isPrice) {
             console.log("price");
-            const newIDsProduct = await fetchDataFilteredProductIDs({
-                product: values["price"],
+            const newProductIDs = await fetchDataFilteredProductIDs({
+                price: +values["price"],
             });
 
-            if (newIDsProduct) {
-                const clearingDuplicates = clearingDuplicatesIDs(newIDsProduct);
-                const productByIDs = await fetchDataProductByIDs(
-                    clearingDuplicates
+            if (newProductIDs) {
+                const newProductIDsNotDuplicate =
+                    clearingDuplicatesIDs(newProductIDs);
+                newProductByIDs = await fetchDataProductByIDs(
+                    newProductIDsNotDuplicate
                 );
-                const productIDsCrop = changePaginateData(clearingDuplicates);
-
-                setProducts((prev) =>
-                    productByIDs.filter((product) =>
-                        productIDsCrop.includes(product.id)
-                    )
+                newProductIDsCrop = changePaginateData(
+                    newProductIDsNotDuplicate
                 );
             }
-            return;
         }
+
+        setProducts((prev) =>
+            newProductByIDs?.filter((product) =>
+                newProductIDsCrop.includes(product.id)
+            )
+        );
     }
 
     async function handleClickResetFilter() {
@@ -374,7 +384,16 @@ async function fetchDataFilteredProductIDs(params) {
 }
 
 function clearingDuplicatesIDs(ids) {
-    return ids.reduce((acc, id) => {
-        return acc.some((ac) => ac === id) ? acc : [...acc, id];
-    }, []);
+    return ids?.reduce(
+        (acc, id) => (acc.some((ac) => ac === id) ? acc : [...acc, id]),
+        []
+    );
+}
+
+function clearingDuplicatesProduct(items) {
+    return items?.reduce(
+        (acc, product) =>
+            acc.some((ac) => ac.id === product.id) ? acc : [...acc, product],
+        []
+    );
 }
