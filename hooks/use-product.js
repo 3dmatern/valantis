@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 
 import {
     getProductIDs,
@@ -13,25 +12,25 @@ import { PAGE_SIZE } from "@/lib/constants";
 import { itemsCrop } from "@/utils/paginate";
 
 export function useProduct() {
+    const [initProductIDs, setInitProductIDs] = useState([]);
     const [productIDs, setProductIDs] = useState([]);
     const [{ currentPage, pageCount }, setPaginateData] = useState({
         currentPage: 1,
         pageCount: 0,
     });
-    const [productIDsCrop, setProductIDsCrop] = useState([]);
     const [productBrands, setProductBrands] = useState([]);
     const [products, setProducts] = useState([]);
 
-    const changePaginateData = useCallback(function (productIDs) {
-        const pageCount = Math.ceil(productIDs.length / PAGE_SIZE);
+    const changePaginateData = useCallback(function (items) {
+        const pageCount = Math.ceil(items.length / PAGE_SIZE);
         let productIDsCrop = [];
 
         setPaginateData((prev) => {
-            productIDsCrop = itemsCrop(productIDs, prev.currentPage, PAGE_SIZE);
+            productIDsCrop = itemsCrop(items, prev.currentPage, PAGE_SIZE);
 
             return {
                 ...prev,
-                itemsCount: productIDs.length,
+                itemsCount: items.length,
                 pageCount,
             };
         });
@@ -39,13 +38,11 @@ export function useProduct() {
         return productIDsCrop;
     }, []);
 
-    const fetchDataProductByIDs = useCallback(async (productIDs) => {
-        const productsData = await getProductByIDs(productIDs);
+    const fetchDataProductByIDs = useCallback(async (newProductIDs) => {
+        const productsData = await getProductByIDs(newProductIDs);
 
         if (productsData?.error) {
-            console.error(productsData.error);
-            toast.error(productsData.error);
-            return;
+            return fetchDataProductByIDs(newProductIDs);
         }
 
         if (productsData?.success) {
@@ -53,7 +50,7 @@ export function useProduct() {
                 productsData.success
             );
             const productsCrop = productNotDuplicate.filter((product) =>
-                productIDs.includes(product.id)
+                newProductIDs.includes(product.id)
             );
             return productsCrop;
         }
@@ -68,21 +65,24 @@ export function useProduct() {
                     clearingDuplicatesIDs(allProductIDsData);
                 const productIDsCrop = changePaginateData(clearingDuplicates);
 
-                setProductIDs((prev) => clearingDuplicates);
-                setProductIDsCrop((prev) => productIDsCrop);
+                const products = await fetchDataProductByIDs(productIDsCrop);
+
+                if (products) {
+                    setProducts((prev) => products);
+                    setInitProductIDs((prev) => clearingDuplicates);
+                    setProductIDs((prev) => clearingDuplicates);
+                }
             }
         };
 
         fetchData();
-    }, [changePaginateData]);
+    }, [changePaginateData, fetchDataProductByIDs]);
 
     useEffect(() => {
         const fetchData = async () => {
             const brandsData = await getProductFields({ field: "brand" });
 
             if (brandsData?.error) {
-                console.error(brandsData.error);
-                toast.error(brandsData.error);
                 return;
             }
 
@@ -104,29 +104,21 @@ export function useProduct() {
         fetchData();
     }, []);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            const productByIDs = await fetchDataProductByIDs(productIDsCrop);
-
-            if (productByIDs) {
-                setProducts((prev) => productByIDs);
-            }
-        };
-
-        fetchData();
-    }, [fetchDataProductByIDs, productIDsCrop]);
-
-    function handleChangePage(selectPage) {
+    async function handleChangePage(selectPage) {
         setPaginateData((prev) => ({
             ...prev,
             currentPage: selectPage,
         }));
-        setProductIDsCrop((prev) =>
-            itemsCrop(productIDs, selectPage, PAGE_SIZE)
-        );
+
+        const newProductCrop = itemsCrop(productIDs, selectPage, PAGE_SIZE);
+        const products = await fetchDataProductByIDs(newProductCrop);
+
+        if (products) {
+            setProducts((prev) => products);
+        }
     }
 
-    function handleClickPrevPage() {
+    async function handleClickPrevPage() {
         if (currentPage === 1 || pageCount === 0) {
             return;
         }
@@ -137,12 +129,16 @@ export function useProduct() {
             ...prev,
             currentPage: selectPage,
         }));
-        setProductIDsCrop((prev) =>
-            itemsCrop(productIDs, selectPage, PAGE_SIZE)
-        );
+
+        const newProductCrop = itemsCrop(productIDs, selectPage, PAGE_SIZE);
+        const products = await fetchDataProductByIDs(newProductCrop);
+
+        if (products) {
+            setProducts((prev) => products);
+        }
     }
 
-    function handleClickNextPage() {
+    async function handleClickNextPage() {
         if (currentPage === pageCount || pageCount === 0) {
             return;
         }
@@ -153,9 +149,13 @@ export function useProduct() {
             ...prev,
             currentPage: selectPage,
         }));
-        setProductIDsCrop((prev) =>
-            itemsCrop(productIDs, selectPage, PAGE_SIZE)
-        );
+
+        const newProductCrop = itemsCrop(productIDs, selectPage, PAGE_SIZE);
+        const products = await fetchDataProductByIDs(newProductCrop);
+
+        if (products) {
+            setProducts((prev) => products);
+        }
     }
 
     async function handleClickApplyFilter(values) {
@@ -166,7 +166,6 @@ export function useProduct() {
         let newProductIDsCrop = [];
 
         if (isProduct && isBrand && isPrice) {
-            console.log("isProduct isBrand isPrice");
             const newProductIDs = await fetchDataFilteredProductIDs({
                 product: values["product"],
             });
@@ -175,6 +174,7 @@ export function useProduct() {
                 const newProducts = await fetchDataProductByIDs(newProductIDs);
                 const newProductsNotDuplicate =
                     clearingDuplicatesProduct(newProducts);
+
                 newProductByIDs = newProductsNotDuplicate.filter(
                     (product) =>
                         product.brand &&
@@ -185,11 +185,11 @@ export function useProduct() {
                     (product) => product.id
                 );
                 newProductIDsCrop = changePaginateData(filteredNewProductIDs);
+                setProductIDs(filteredNewProductIDs);
             }
         }
 
         if (isProduct && !isBrand && isPrice) {
-            console.log("isProduct !isBrand isPrice");
             const newProductIDs = await fetchDataFilteredProductIDs({
                 product: values["product"],
             });
@@ -205,11 +205,11 @@ export function useProduct() {
                     (product) => product.id
                 );
                 newProductIDsCrop = changePaginateData(filteredNewProductIDs);
+                setProductIDs(filteredNewProductIDs);
             }
         }
 
         if (isProduct && isBrand && !isPrice) {
-            console.log("isProduct isBrand !isPrice");
             const newProductIDs = await fetchDataFilteredProductIDs({
                 product: values["product"],
             });
@@ -227,11 +227,11 @@ export function useProduct() {
                     (product) => product.id
                 );
                 newProductIDsCrop = changePaginateData(filteredNewProductIDs);
+                setProductIDs(filteredNewProductIDs);
             }
         }
 
         if (!isProduct && isBrand && isPrice) {
-            console.log("!isProduct isBrand isPrice");
             const newProductIDsBrand = await fetchDataBrandIDs(values["brand"]);
             const newProductIDsPrice = await fetchDataFilteredProductIDs({
                 price: +values["price"],
@@ -254,11 +254,11 @@ export function useProduct() {
                     (product) => product.id
                 );
                 newProductIDsCrop = changePaginateData(filteredNewProductIDs);
+                setProductIDs(filteredNewProductIDs);
             }
         }
 
         if (isProduct && !isBrand && !isPrice) {
-            console.log("product");
             const newProductIDs = await fetchDataFilteredProductIDs({
                 product: values["product"],
             });
@@ -272,11 +272,12 @@ export function useProduct() {
                 newProductIDsCrop = changePaginateData(
                     newProductIDsNotDuplicate
                 );
+
+                setProductIDs(newProductIDsNotDuplicate);
             }
         }
 
         if (!isProduct && isBrand && !isPrice) {
-            console.log("brand");
             const newProductIDs = await fetchDataBrandIDs(values["brand"]);
 
             if (newProductIDs.length > 0) {
@@ -288,11 +289,12 @@ export function useProduct() {
                 newProductIDsCrop = changePaginateData(
                     newProductIDsNotDuplicate
                 );
+
+                setProductIDs(newProductIDsNotDuplicate);
             }
         }
 
         if (!isProduct && !isBrand && isPrice) {
-            console.log("price");
             const newProductIDs = await fetchDataFilteredProductIDs({
                 price: +values["price"],
             });
@@ -306,6 +308,8 @@ export function useProduct() {
                 newProductIDsCrop = changePaginateData(
                     newProductIDsNotDuplicate
                 );
+
+                setProductIDs(newProductIDsNotDuplicate);
             }
         }
 
@@ -317,9 +321,13 @@ export function useProduct() {
     }
 
     async function handleClickResetFilter() {
-        const productIDsCrop = changePaginateData(productIDs);
+        const productIDsCrop = changePaginateData(initProductIDs);
+        const products = await fetchDataProductByIDs(productIDsCrop);
 
-        setProductIDsCrop((prev) => productIDsCrop);
+        if (products) {
+            setProducts((prev) => products);
+            setProductIDs(initProductIDs);
+        }
     }
 
     return {
@@ -340,8 +348,6 @@ async function fetchDataProductIDs({ offset, limit }, dataSoFar = []) {
     let updatedProductIDs = [...dataSoFar];
 
     if (data?.error) {
-        console.error(data.error);
-        toast.error(data.error);
         return;
     }
 
@@ -364,8 +370,6 @@ async function fetchDataFilteredProductIDs(params) {
     const data = await getFilteredProductByField(params);
 
     if (data?.error) {
-        console.error(data.error);
-        toast.error(data.error);
         return;
     } else if (data?.success) {
         return data.success;
