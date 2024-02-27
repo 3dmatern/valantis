@@ -26,7 +26,6 @@ export default function Home() {
                 onClickResetFilter={onClickResetFilter}
             />
             <Product
-                className="col-span-4"
                 currentPage={currentPage}
                 pageCount={pageCount}
                 products={products}
@@ -40,7 +39,7 @@ export default function Home() {
 
 function HomePageLayout({ children }) {
     return (
-        <main className="container mx-auto relative grid grid-cols-5 gap-5 items-start pt-5">
+        <main className="container mx-auto h-screen pt-5 px-5 relative grid grid-cols-5 gap-5 items-start">
             {children}
         </main>
     );

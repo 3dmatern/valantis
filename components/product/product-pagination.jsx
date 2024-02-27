@@ -150,7 +150,7 @@ export function ProductPagination({
 
     return (
         pages?.length > 1 && (
-            <Pagination className={cn("mt-4 mb-4", className)}>
+            <Pagination className={cn("pt-4 pb-4", className)}>
                 <PaginationContent>
                     <PaginationItem>
                         <PaginationPrevious
