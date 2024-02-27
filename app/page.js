@@ -39,7 +39,7 @@ export default function Home() {
 
 function HomePageLayout({ children }) {
     return (
-        <main className="container mx-auto p-5 relative grid grid-cols-5 gap-5 items-start">
+        <main className="container min-w-[390px] mx-auto md:p-5 p-4 relative grid lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-3 grid-cols-2 gap-5 items-start">
             {children}
         </main>
     );

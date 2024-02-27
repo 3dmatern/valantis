@@ -30,7 +30,11 @@ export const Product = memo(function Product({
             ));
         }
 
-        return <p className="col-span-4 text-center">Товаров не найдено...</p>;
+        return (
+            <p className="col-span-4 text-center md:text-base text-sm">
+                Товаров не найдено...
+            </p>
+        );
     }
 
     return (
@@ -39,6 +43,7 @@ export const Product = memo(function Product({
 
             {products?.length > 0 && (
                 <ProductPagination
+                    className="lg:static absolute bottom-0 right-16"
                     currentPage={currentPage}
                     pageCount={pageCount}
                     onChangePage={onChangePage}
@@ -51,5 +56,14 @@ export const Product = memo(function Product({
 });
 
 function ProductLayout({ className, children }) {
-    return <div className={cn("col-span-4", className)}>{children}</div>;
+    return (
+        <div
+            className={cn(
+                "sm:pb-0 pb-14 lg:col-span-4 md:col-span-3 sm:col-span-2 col-span-1 relative",
+                className
+            )}
+        >
+            {children}
+        </div>
+    );
 }
