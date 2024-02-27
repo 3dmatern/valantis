@@ -42,6 +42,7 @@ export function useProduct() {
         const productsData = await getProductByIDs(newProductIDs);
 
         if (productsData?.error) {
+            console.error(productsData.error);
             return fetchDataProductByIDs(newProductIDs);
         }
 
