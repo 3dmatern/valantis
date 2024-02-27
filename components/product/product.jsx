@@ -35,13 +35,10 @@ export const Product = memo(function Product({
 
     return (
         <ProductLayout className={className}>
-            <ProductWrapper className="h-[calc(100vh-5.5rem)] overflow-y-auto">
-                {getContent()}
-            </ProductWrapper>
+            <ProductWrapper>{getContent()}</ProductWrapper>
 
             {products?.length > 0 && (
                 <ProductPagination
-                    className="absolute -bottom-[68px] left-0 right-0 bg-white"
                     currentPage={currentPage}
                     pageCount={pageCount}
                     onChangePage={onChangePage}
@@ -54,7 +51,5 @@ export const Product = memo(function Product({
 });
 
 function ProductLayout({ className, children }) {
-    return (
-        <div className={cn("col-span-4 relative", className)}>{children}</div>
-    );
+    return <div className={cn("col-span-4", className)}>{children}</div>;
 }
