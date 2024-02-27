@@ -1,11 +1,12 @@
-"use server";
+"use client";
 
 import axios from "axios";
 import md5 from "md5";
 
+import config from "@/config.json";
 import { getConcatYMD } from "@/utils/formatedDate";
 
-const xAuthValue = md5(process.env.X_AUTH + getConcatYMD());
+const xAuthValue = md5(config.X_AUTH + getConcatYMD());
 
 const HEADERS = {
     headers: {
@@ -13,7 +14,7 @@ const HEADERS = {
     },
 };
 const http = axios.create({
-    baseURL: process.env.API_ENDPOINT,
+    baseURL: config.API_ENDPOINT,
 });
 
 export async function getProductIDs(params = null) {
@@ -29,8 +30,8 @@ export async function getProductIDs(params = null) {
 
         return { success: data.result };
     } catch (error) {
-        console.error("getProductIDs", error?.response);
-        return { error: error?.response?.data };
+        console.error("getProductIDs", error?.response.data);
+        return;
     }
 }
 
@@ -49,8 +50,8 @@ export async function getProductByIDs(ids) {
 
         return { success: data.result };
     } catch (error) {
-        console.error("getProductByIDs", error?.response);
-        return { error: error?.response?.data };
+        console.error("getProductByIDs", error?.response.data);
+        return;
     }
 }
 
@@ -67,8 +68,8 @@ export async function getProductFields(params) {
 
         return { success: data.result };
     } catch (error) {
-        console.error("getProductFields", error?.response);
-        return { error: error?.response?.data };
+        console.error("getProductFields", error?.response?.data);
+        return;
     }
 }
 
@@ -85,7 +86,7 @@ export async function getFilteredProductByField(params) {
 
         return { success: data.result };
     } catch (error) {
-        console.error("getFilteredProductByField", error?.response);
-        return { error: error?.response?.data };
+        console.error("getFilteredProductByField", error?.response.data);
+        return;
     }
 }

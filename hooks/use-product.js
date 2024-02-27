@@ -59,20 +59,28 @@ export function useProduct() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const allProductIDsData = await fetchDataProductIDs({ offset: 0 });
+            const allProductIDsData = await fetchDataProductIDs({
+                offset: 0,
+                limit: 100,
+            });
 
             if (allProductIDsData?.length) {
                 const clearingDuplicates =
                     clearingDuplicatesIDs(allProductIDsData);
                 const productIDsCrop = changePaginateData(clearingDuplicates);
 
-                const products = await fetchDataProductByIDs(productIDsCrop);
+                if (productIDsCrop.length) {
+                    const products = await fetchDataProductByIDs(
+                        productIDsCrop
+                    );
 
-                if (products) {
-                    setProducts((prev) => products);
-                    setInitProductIDs((prev) => clearingDuplicates);
-                    setProductIDs((prev) => clearingDuplicates);
+                    if (products) {
+                        setProducts((prev) => products);
+                    }
                 }
+
+                setInitProductIDs((prev) => clearingDuplicates);
+                setProductIDs((prev) => clearingDuplicates);
             }
         };
 
@@ -82,10 +90,6 @@ export function useProduct() {
     useEffect(() => {
         const fetchData = async () => {
             const brandsData = await getProductFields({ field: "brand" });
-
-            if (brandsData?.error) {
-                return;
-            }
 
             if (brandsData?.success) {
                 setProductBrands((prev) => {
@@ -347,10 +351,6 @@ export function useProduct() {
 async function fetchDataProductIDs({ offset, limit }, dataSoFar = []) {
     const data = await getProductIDs({ offset, limit });
     let updatedProductIDs = [...dataSoFar];
-
-    if (data?.error) {
-        return;
-    }
 
     if (data?.success) {
         updatedProductIDs = [...updatedProductIDs, ...data.success];
