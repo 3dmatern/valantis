@@ -170,7 +170,6 @@ export function useProduct() {
             const newProductIDs = await fetchDataFilteredProductIDs({
                 product: values["product"],
             });
-            console.log(newProductIDs);
 
             if (newProductIDs) {
                 const newProducts = await fetchDataProductByIDs(newProductIDs);
@@ -179,7 +178,7 @@ export function useProduct() {
                 newProductByIDs = newProductsNotDuplicate.filter(
                     (product) =>
                         product.brand &&
-                        values["brand"].includes(product.brand) &&
+                        values["brand"].some((b) => b === product.brand) &&
                         product.price === +values["price"]
                 );
                 const filteredNewProductIDs = newProductByIDs.map(
@@ -221,7 +220,8 @@ export function useProduct() {
                     clearingDuplicatesProduct(newProducts);
                 newProductByIDs = newProductsNotDuplicate.filter(
                     (product) =>
-                        product.brand && values["brand"].includes(product.brand)
+                        product.brand &&
+                        values["brand"].some((b) => b === product.brand)
                 );
                 const filteredNewProductIDs = newProductByIDs.map(
                     (product) => product.id
@@ -232,11 +232,9 @@ export function useProduct() {
 
         if (!isProduct && isBrand && isPrice) {
             console.log("!isProduct isBrand isPrice");
-            const newProductIDsBrand = await fetchDataFilteredProductIDs({
-                brand: values["brand"],
-            });
+            const newProductIDsBrand = await fetchDataBrandIDs(values["brand"]);
             const newProductIDsPrice = await fetchDataFilteredProductIDs({
-                price: values["price"],
+                price: +values["price"],
             });
 
             if (newProductIDsBrand && newProductIDsPrice) {
@@ -249,7 +247,7 @@ export function useProduct() {
                 newProductByIDs = newProductsNotDuplicate.filter(
                     (product) =>
                         product.brand &&
-                        values["brand"].includes(product.brand) &&
+                        values["brand"].some((b) => b === product.brand) &&
                         product.price === +values["price"]
                 );
                 const filteredNewProductIDs = newProductByIDs.map(
@@ -279,20 +277,11 @@ export function useProduct() {
 
         if (!isProduct && isBrand && !isPrice) {
             console.log("brand");
-            let ids = [];
+            const newProductIDs = await fetchDataBrandIDs(values["brand"]);
 
-            for (let i = 0; i < values["brand"].length; i++) {
-                const newIDs = await fetchDataFilteredProductIDs({
-                    brand: values["brand"][i],
-                });
-
-                if (newIDs) {
-                    ids = [...ids, ...newIDs];
-                }
-            }
-
-            if (ids.length > 0) {
-                const newProductIDsNotDuplicate = clearingDuplicatesIDs(ids);
+            if (newProductIDs.length > 0) {
+                const newProductIDsNotDuplicate =
+                    clearingDuplicatesIDs(newProductIDs);
                 newProductByIDs = await fetchDataProductByIDs(
                     newProductIDsNotDuplicate
                 );
@@ -396,4 +385,20 @@ function clearingDuplicatesProduct(items) {
             acc.some((ac) => ac.id === product.id) ? acc : [...acc, product],
         []
     );
+}
+
+async function fetchDataBrandIDs(brandIDs) {
+    let ids = [];
+
+    for (let i = 0; i < brandIDs.length; i++) {
+        const newIDs = await fetchDataFilteredProductIDs({
+            brand: brandIDs[i],
+        });
+
+        if (newIDs) {
+            ids = [...ids, ...newIDs];
+        }
+    }
+
+    return ids;
 }
